@@ -65,6 +65,7 @@ class ModalService {
 			return Promise.resolve(undefined);
 		}
 		if (!State.listening) {
+			State.listening = true;
 			State.waiting = [];
 			top.opener.postMessage({
 				'https://js.poppy.io/a/ServiceMessage': ['get-request']
