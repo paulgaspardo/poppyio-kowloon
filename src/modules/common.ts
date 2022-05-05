@@ -113,6 +113,10 @@ export interface PeerOffer {
  */
 export type CallbackIntent<R> = CallbackAcceptor<R> | CallbackOffer<R>;
 
+/**
+ * Acceptor with a callback function that can send a reply in response to
+ * an offer.
+ */
 export interface CallbackAcceptor<R> {
 	/** The form or forms of the object we wish to accept */
 	accepting: string|string[];
@@ -132,6 +136,12 @@ export interface PeerAcceptor {
 	closing: Promise<void>;
 }
 
+/**
+ * Intent with a callback function that posts the offer to a passed PeerAcceptor.
+ *
+ * This allows sending Transferable objects to the peer, including
+ * MessagePorts.
+ */
 export interface CallbackOffer<R> {
 	offering: string | string[];
 	having?: object | undefined;
