@@ -1,0 +1,15 @@
+{
+	"compilerOptions": {
+		"strictNullChecks": true,
+		"noImplicitAny": true,
+		"noImplicitReturns": true,
+		"outDir": "target/package",
+		"noEmitHelpers": true,
+		"declaration": true,
+		"module": "ES2015",
+		"lib": ["ES2015", "DOM"],
+		"target": "ES2015",
+		"removeComments": false,
+		"moduleResolution": "node"
+	}
+}

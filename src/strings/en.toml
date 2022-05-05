@@ -1,0 +1,17 @@
+tag = 'en'
+
+title = 'Poppy Launcher'
+serviceDomain = 'Service Domain:'
+stop = 'Stop'
+go = 'Go'
+aborted = 'Cancelled {domain} poppy service lookup.'
+
+gone = 'The page that opened this poppy is disconnected. You may close this window.'
+lookingUp = 'Looking up poppy service at {domain}...'
+serviceNotFound = 'No poppy service was found at {domain}.'
+serviceFound = 'Poppy service found at {domain}; taking you there...'
+serviceNotValid = 'A poppy service was found at {domain} but it does not appear to be valid.'
+
+poppyOpen = 'Waiting for a poppy service open in another window'
+cancelAndClose = 'Cancel and Close Poppy'
+cancel = 'Cancel'
