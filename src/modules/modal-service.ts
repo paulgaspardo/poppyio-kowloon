@@ -19,7 +19,7 @@ class ModalService {
 	static close() {
 		top?.opener?.postMessage({
 			'https://js.poppy.io/a/ServiceMessage': ['close']
-		});
+		}, '*');
 		window.close();
 	}
 
