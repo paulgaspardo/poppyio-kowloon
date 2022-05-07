@@ -189,7 +189,7 @@ function injectLauncher(popup: Window, translation: {[key:string]:string}, reque
 			}
 			for (let link of response.links) {
 				if (!link) continue;
-				if (link.rel !== 'https://js.poppy.io/a/Service-1') continue;
+				if (link.rel !== 'https://js.poppy.io/a/ModalService') continue;
 				if (typeof link.href !== 'string') continue;
 				return link.href as string;
 			}
