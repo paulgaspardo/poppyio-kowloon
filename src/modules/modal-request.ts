@@ -1,4 +1,4 @@
-import { ConnectingAcceptor, ConnectingIntent, PeerIntent, MatchResult, ConnectingOffer, MatchingIntent, Intent, CallbackAcceptor, CallbackOffer, HandlingIntent } from "./common.js";
+import { ConnectingAcceptor, ConnectingIntent, PeerIntent, MatchResult, ConnectingOffer, BasicIntent, Intent, PostingAcceptor, PostingOffer, HandlingIntent } from "./common.js";
 
 import { parseOrigin, toCats, Cat, dispatch } from "./common-impl.js";
 
@@ -163,11 +163,11 @@ class ModalRequest {
 	 * @param matching 
 	 * @returns 
 	 */
-	open(matching: MatchingIntent|MatchingIntent[]): Promise<MatchResult<any[]>>
+	open(matching: BasicIntent|BasicIntent[]): Promise<MatchResult<any[]>>
 	open<T>(matching: HandlingIntent<T>|HandlingIntent<T>[]): Promise<MatchResult<T>>
-	open<T>(matching: HandlingIntent<T>|MatchingIntent|(HandlingIntent<T>|MatchingIntent)): Promise<MatchResult<T|any[]>>
+	open<T>(matching: HandlingIntent<T>|BasicIntent|(HandlingIntent<T>|BasicIntent)): Promise<MatchResult<T|any[]>>
 
-	open(matching: HandlingIntent<any>|MatchingIntent|(HandlingIntent<any>|MatchingIntent)[]): Promise<MatchResult<unknown>> {
+	open(matching: HandlingIntent<any>|BasicIntent|(HandlingIntent<any>|BasicIntent)[]): Promise<MatchResult<unknown>> {
 		return this.z.o(matching);
 	}
 

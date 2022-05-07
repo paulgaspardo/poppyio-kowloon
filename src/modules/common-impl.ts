@@ -1,6 +1,6 @@
 // Common functions and types not part of the public API
 
-import { Intent, ConnectingIntent, PeerIntent, MatchingAcceptor, MatchingOffer, CallbackAcceptor, PeerOffer, CallbackOffer, PeerAcceptor, DataArray } from "./common.js";
+import { Intent, ConnectingIntent, PeerIntent, BasicAcceptor, BasicOffer, PostingAcceptor, PeerOffer, PostingOffer, PeerAcceptor, DataArray } from "./common.js";
 
 export function dispatch(target: Window|Element, kind: string, detail?: any): boolean {
 	if (typeof CustomEvent === 'function') {
@@ -14,7 +14,7 @@ export function dispatch(target: Window|Element, kind: string, detail?: any): bo
 
 
 export function toCats(matching: Intent|Intent[]): Cat<unknown>[];
-export function toCats<T>(matcing: ConnectingIntent<T>|CallbackAcceptor<T>|Array<CallbackAcceptor<T>|ConnectingIntent<T>>): Cat<T>[];
+export function toCats<T>(matcing: ConnectingIntent<T>|PostingAcceptor<T>|Array<PostingAcceptor<T>|ConnectingIntent<T>>): Cat<T>[];
 
 export function toCats(matching: Intent|Intent[]): Cat<unknown>[] {
 	let cats : Cat<unknown>[] = [];
@@ -30,9 +30,9 @@ export function toCats(matching: Intent|Intent[]): Cat<unknown>[] {
 		if ('connecting' in matcher && typeof matcher.connecting === 'function') {
 			connect = matcher.connecting.bind(matcher);
 		} else if (matcher.accepting) {
-			connect = (port, matched, closing) => performRecv(matcher as MatchingAcceptor|CallbackAcceptor<unknown>, port, matched, closing);
+			connect = (port, matched, closing) => performRecv(matcher as BasicAcceptor|PostingAcceptor<unknown>, port, matched, closing);
 		} else {
-			connect = (port, matched, closing) => performSend(matcher as MatchingOffer, port, matched, closing);
+			connect = (port, matched, closing) => performSend(matcher as BasicOffer, port, matched, closing);
 		}
 		let formOrForms = (matcher.accepting || matcher.offering)!;
 		for (let form of Array.isArray(formOrForms) ? formOrForms : [formOrForms]) {
@@ -61,43 +61,43 @@ function arrayify(data: any): DataArray {
 	return dataArray;
 }
 
-function performSend(matcher: MatchingOffer|CallbackOffer<any>, port: MessagePort, matching: PeerIntent, closing: Promise<void>): PromiseLike<unknown> {
+function performSend(matcher: BasicOffer|PostingOffer<any>, port: MessagePort, matching: PeerIntent, closing: Promise<void>): PromiseLike<unknown> {
 	let offerPosted = false;
+	let postOffer = (data: any, transfer?: Transferable[]) => new Promise<DataArray>((resolve, reject) => {
+		port.onmessage = ev => {
+			if (waitingForResult) {
+				console.log('got result', ev.data);
+				waitingForResult = false;
+				resolve(arrayify(ev.data));
+				port.postMessage(null);
+			}
+		};
+		if (offerPosted) {
+			return reject(new Error('https://purl.org/pio/a/OfferAlreadyPosted'));
+		}
+		offerPosted = true;
+		if (transfer) {
+			port.postMessage(data, transfer);
+		} else {
+			port.postMessage(data);
+		}
+		let waitingForResult = true;
+		closing.then(() => resolve(arrayify(undefined)));
+	})
 	let acceptor: PeerAcceptor = {
 		match: matching,
-		closing,
-		postOffer: (data, transfer) => new Promise((resolve, reject) => {
-			port.onmessage = ev => {
-				if (waitingForResult) {
-					console.log('got result', ev.data);
-					waitingForResult = false;
-					resolve(arrayify(ev.data));
-					port.postMessage(null);
-				}
-			};
-			if (offerPosted) {
-				return reject(new Error('https://purl.org/pio/a/OfferAlreadyPosted'));
-			}
-			offerPosted = true;
-			if (transfer) {
-				port.postMessage(data, transfer);
-			} else {
-				port.postMessage(data);
-			}
-			let waitingForResult = true;
-			closing.then(() => resolve(arrayify(undefined)));
-		})
+		closing
 	};
 	if ('using' in matcher) {
-		return matcher.using(acceptor);
+		return matcher.using(acceptor, postOffer);
 	}
 	let sending = Promise.resolve(
-		typeof matcher.sending === 'function' ? matcher.sending(matching) : matcher.sending
+		typeof matcher.sending === 'function' ? matcher.sending(acceptor) : matcher.sending
 	);
-	return sending.then(resolved => acceptor.postOffer(resolved));
+	return sending.then(resolved => postOffer(resolved));
 }
 
-function performRecv(matcher: MatchingAcceptor|CallbackAcceptor<unknown>, port: MessagePort, matching: PeerIntent, closing: Promise<void>) : Promise<unknown> {
+function performRecv(matcher: BasicAcceptor|PostingAcceptor<unknown>, port: MessagePort, matching: PeerIntent, closing: Promise<void>) : Promise<unknown> {
 	return new Promise<unknown>((resolve, reject) => {
 		let waitingForOffer = true;
 		let waitingForCallback = false;
@@ -130,11 +130,19 @@ function performRecv(matcher: MatchingAcceptor|CallbackAcceptor<unknown>, port: 
 						data: arrayify(ev.data),
 						ports: (ports = ev.ports),
 						match: matching,
-						closing,
-						postResult
+						closing
 					};
 					waitingForCallback = true;
-					(typeof matcher.using === 'function' ? matcher.using(offer) : Promise.resolve(offer.data)).then(
+					let callbackPromise: PromiseLike<unknown>;
+					if (typeof matcher.using === 'function') {
+						callbackPromise = matcher.using(offer, postResult);
+					} else {
+						callbackPromise = Promise.resolve('replying' in matcher ? typeof matcher.replying === 'function' ? matcher.replying(offer) : matcher.replying : undefined).then(value => {
+							postResult(value);
+							return offer.data;
+						});
+					}
+					callbackPromise.then(
 						value => {
 							waitingForCallback = false;
 							resolveValue = value;

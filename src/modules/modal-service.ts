@@ -1,4 +1,4 @@
-import { Intent, ConnectingIntent, PeerIntent, MatchResult, MatchingIntent, CallbackAcceptor, HandlingIntent } from "./common.js";
+import { Intent, ConnectingIntent, PeerIntent, MatchResult, BasicIntent, PostingAcceptor, HandlingIntent } from "./common.js";
 
 import { toCats, Cat, dispatch } from "./common-impl.js";
 
@@ -170,9 +170,9 @@ class ModalService {
 	 * @param matching One or more matchers that correspond to the client
 	 *   matching list, to use to perform the exchange
 	 */
-	open(matching: MatchingIntent|MatchingIntent[]): Promise<MatchResult<any[]>>
+	open(matching: BasicIntent|BasicIntent[]): Promise<MatchResult<any[]>>
 	open<T>(matching: HandlingIntent<T>|HandlingIntent<T>[]): Promise<MatchResult<T>>
-	open<T>(matching: HandlingIntent<T>|MatchingIntent|(HandlingIntent<T>|MatchingIntent)): Promise<MatchResult<T|any[]>>
+	open<T>(matching: HandlingIntent<T>|BasicIntent|(HandlingIntent<T>|BasicIntent)): Promise<MatchResult<T|any[]>>
 }
 
 
@@ -184,9 +184,9 @@ class State {
 	static opened: any;
 }
 
-function openRequest(matching: MatchingIntent|MatchingIntent[]): Promise<MatchResult<any[]>>;
+function openRequest(matching: BasicIntent|BasicIntent[]): Promise<MatchResult<any[]>>;
 function openRequest<T>(matching: HandlingIntent<T>|HandlingIntent<T>[]): Promise<MatchResult<T>>;
-function openRequest<T>(matching: HandlingIntent<T>|MatchingIntent|(HandlingIntent<T>|MatchingIntent)): Promise<MatchResult<T|any[]>>;
+function openRequest<T>(matching: HandlingIntent<T>|BasicIntent|(HandlingIntent<T>|BasicIntent)): Promise<MatchResult<T|any[]>>;
 
 function openRequest(matching: Intent|Intent[]): Promise<MatchResult<unknown>> {
 	if (State.opened) {

@@ -66,17 +66,17 @@ export type Matched<T> = {
 /**
  * A matcher can be either a simple object matcher, or a dynamic matcher
  */
-export type Intent = MatchingIntent | HandlingIntent<any>;
+export type Intent = BasicIntent | HandlingIntent<any>;
 
 /**
  * A dynamic matcher can be a callback matcher or a connecting matcher
  */
-export type HandlingIntent<T> = ConnectingIntent<T> | CallbackIntent<T>;
+export type HandlingIntent<T> = ConnectingIntent<T> | PostingIntent<T>;
 
 /**
  * A simple object matcher can be used to send or receive a single object.
  */
-export type MatchingIntent = MatchingAcceptor | MatchingOffer;
+export type BasicIntent = BasicAcceptor | BasicOffer;
 
 /**
  * An acceptor used to receive a single object
@@ -87,12 +87,23 @@ export type MatchingIntent = MatchingAcceptor | MatchingOffer;
  *  * If the offer data is null or undefined, the result is an empty array
  *  * Otherwise, the result will be a single-element array containing the offer data
  */
-export interface MatchingAcceptor {
+export interface BasicAcceptor {
 	/** The form or forms of the object we wish to accept */
 	accepting: string|string[];
 
 	/** Additional form-specific metadata */
 	having?: object|undefined;
+	/**
+	 * The data are reaply with, or a function returning the reply to send.
+	 * 
+	 * If a function, the first parameter is the peer's Match information and
+	 * the second parameter is a promise that resolves when the exchange is closing
+	 * (in case the modal is closed before the exchange can complete).
+	 * 
+	 * The data may be a promise that resolves to the data to send asynchronously. 
+	 */
+	replying?: any | Promise<any> | ((matched: PeerIntent, data: DataArray, ports: readonly MessagePort[], closing: Promise<void>) => object) | ((matched: PeerIntent, ports: readonly MessagePort[], closing: Promise<void>) => PromiseLike<object>);
+
 
 	offering?: never;
 	connecting?: never;
@@ -104,27 +115,25 @@ export interface PeerOffer {
 	data: DataArray;
 	ports: readonly MessagePort[];
 	closing: Promise<void>;
-
-	postResult(data: any, transfer?: Transferable[]): Promise<boolean>;
 }
 
 /**
  * A callback matcher allows sending or receiving a single object as in
  */
-export type CallbackIntent<R> = CallbackAcceptor<R> | CallbackOffer<R>;
+export type PostingIntent<R> = PostingAcceptor<R> | PostingOffer<R>;
 
 /**
  * Acceptor with a callback function that can send a reply in response to
  * an offer.
  */
-export interface CallbackAcceptor<R> {
+export interface PostingAcceptor<R> {
 	/** The form or forms of the object we wish to accept */
 	accepting: string|string[];
 
 	/** Additional form-specific metadata */
 	having?: object|undefined;
 
-	using(offer: PeerOffer): PromiseLike<R>;
+	using(offer: PeerOffer, postResult: (data: any, transfer?: Transferable[]) => Promise<boolean>): PromiseLike<R>;
 
 	offering?: never;
 	connecting?: never;
@@ -132,7 +141,6 @@ export interface CallbackAcceptor<R> {
 
 export interface PeerAcceptor {
 	match: PeerIntent;
-	postOffer(data: any, transfer?: Transferable[]): Promise<DataArray>;
 	closing: Promise<void>;
 }
 
@@ -142,10 +150,10 @@ export interface PeerAcceptor {
  * This allows sending Transferable objects to the peer, including
  * MessagePorts.
  */
-export interface CallbackOffer<R> {
+export interface PostingOffer<R> {
 	offering: string | string[];
 	having?: object | undefined;
-	using(acceptor: PeerAcceptor): PromiseLike<R>;
+	using(acceptor: PeerAcceptor, postOffer: (data: any, transfer?: Transferable[]) => Promise<DataArray>): PromiseLike<R>;
 
 	accepting?: never;
 	connecting?: never;
@@ -161,7 +169,7 @@ export interface CallbackOffer<R> {
  *  * If the response data is null or undefined, the result is an empty array
  *  * Otherwise, the result will be a single-element array containing the response data
  */
-export interface MatchingOffer {
+export interface BasicOffer {
 	/** The form or forms of the object we can send */
 	offering: string|string[];
 	/** Additional form-specific metadata */
@@ -176,7 +184,7 @@ export interface MatchingOffer {
 	 * 
 	 * The data may be a promise that resolves to the data to send asynchronously. 
 	 */
-	sending: any | Promise<any> | ((matched: PeerIntent, closing: Promise<void>) => object) | ((matched: PeerIntent, closing: Promise<void>) => PromiseLike<object>);
+	sending: any | Promise<any> | ((acceptor: PeerAcceptor) => object) | ((acceptor: PeerAcceptor) => PromiseLike<object>);
 
 	accepting?: never;
 	connecting?: never;
