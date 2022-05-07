@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+	<body>
+		<ul id="texts">
+			<li><a href=".">Hello everyone!</a></li>
+			<li><a href=".">How are you?</a></li>
+			<li><a href=".">Fine, thank you</a></li>
+			<li><a href=".">OH MY GAH!</a></li>
+			<li><a href=".">Uh, I wish I were a bird</a></li>
+		</ul>
+		<p>
+			<button id="cancel">Cancel</button>
+		</p>
+		<script src="/target/package/bundle/poppyio.js"></script>
+		<script>
+			document.getElementById('cancel').onclick = function () {
+				poppyio.ModalService.close();
+			};
+			document.getElementById("texts").addEventListener("click", function (ev) {
+				ev.preventDefault();
+				if (ev.target.tagName === "A") {
+					poppyio.ModalService.getRequest().then(function (req) {
+						if (req) req.open({
+							offering: "content-blob",
+							sending: { blob: new Blob([ev.target.textContent], { type: "text/plain" }) }
+						}).then(function () {
+							poppyio.ModalService.close();
+						})
+					});
+				}
+			});
+			/*
+				result.value[0].content
+			*/
+		</script>
+	</body>
+</html>

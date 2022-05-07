@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+	<body>
+		<div>
+			<textarea disabled id="text" style="width:100%; height: 20em"></textarea>
+		</div>
+		<div>
+			<button id="ok" disabled>OK</button>
+			<button id="cancel">Cancel</button>
+		</div>
+		<script src="/target/package/bundle/poppyio.js"></script>
+		<script>
+			var textArea = document.getElementById("text");
+			document.getElementById("cancel").onclick = function () {
+				poppyio.ModalService.close();
+			}
+			poppyio.ModalService.getRequest()
+				.then(function (req) {
+					if (!req) {
+						return;
+					}
+					req.open({
+						accepting: "edit-blob",
+						replying: function (offer) {
+							var okButton = document.getElementById("ok");
+							return new poppyio.Promise(function (resolve) {
+								var reader = new FileReader;
+								reader.onload = function () {
+									console.log('balue',reader.value);
+									textArea.value = reader.result;
+									textArea.disabled = false;
+									okButton.disabled = textArea.disabled = false;
+									okButton.onclick = function () {
+										resolve({ blob: new Blob([textArea.value], {type:"text/plain"}) });
+									}
+								};
+								reader.readAsText(offer.data[0].blob);
+							});
+						}
+					}).then(function (result) {
+						if (!result.matched) {
+							textArea.value = "No request matching";
+						} else {
+							poppyio.ModalService.close();
+						}
+					})
+				});
+		</script>
+	</body>
+</html>

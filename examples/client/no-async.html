@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Text Editor No Async</title>
+	</head>
+	<body>
+		<p><button id="open-editor">Open text editor</button> <button id="insert-stock">Use Stock Text</button></p>
+		<pre id="text" style="border: 1px solid black; padding: 1em"></pre>
+		<script src="/target/package/bundle/poppyio.en.js"></script>
+		<script>
+			var pre = document.getElementById("text");
+			pre.textContent = localStorage.getItem("no-async-text") || "Hello, World!";
+			poppyio.ModalRequest.prepareProxy();
+			function replaceText (result) {
+				if (result.matched && result.value[0] && result.value[0].blob instanceof Blob) {
+						var reader = new FileReader();
+						reader.onload = function () {
+							localStorage.setItem("no-async-text", reader.result);
+							pre.textContent = reader.result;
+						}
+						reader.readAsText(result.value[0].blob);
+					}
+			}
+			document.getElementById("open-editor").addEventListener("click", function () {
+				new poppyio.ModalRequest("/examples/service/text-editor.html").open({
+					offering: "edit-blob",
+					sending: function () {
+						return { blob: new Blob([document.getElementById("text").textContent], {type:"text/plain"}) };
+					}
+				}).then(replaceText);
+			});
+			document.getElementById("insert-stock").addEventListener("click", function () {
+				new poppyio.ModalRequest("/examples/service/stock-texts.html").open({
+					accepting: "content-blob"
+				}).then(replaceText);
+			});
+		</script>
+	</body>
+</html>
