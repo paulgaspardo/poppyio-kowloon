@@ -216,7 +216,7 @@ function injectLauncher(popup: Window, translation: {[key:string]:string}, reque
 				dispatch(popup.opener, 'ChangeLocation', serviceUrl);
 			} else if (serviceUrl.indexOf('/') === 0) {
 				leaving = true;
-				dispatch(popup.opener, 'ChangeLocation', 'https://' + domain + serviceUrl);
+				dispatch(popup.opener, 'ChangeLocation', parseOrigin(xhr.responseURL) + serviceUrl);
 			} else {
 				status.textContent = translated('serviceNotValid');
 				domainInput.disabled = goButton.disabled = false;
