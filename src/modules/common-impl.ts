@@ -20,10 +20,10 @@ export function toCats(matching: Intent|Intent[]): Cat<unknown>[] {
 	let cats : Cat<unknown>[] = [];
 	for (let matcher of Array.isArray(matching) ? matching : [matching]) {
 		if (!matcher || typeof matcher !== 'object') {
-			throw new Error('https://purl.org/pio/a/MatcherNotAnObject');
+			throw new Error('https://purl.org/pio/e/MatcherNotAnObject@$Version$');
 		}
 		if (!!matcher.accepting === !!matcher.offering) {
-			throw new Error('https://purl.org/pio/a/MatcherDoesNotHaveAcceptingXorOffering');
+			throw new Error('https://purl.org/pio/e/MatcherDoesNotHaveAcceptingXorOffering@$Version$');
 		}
 		let side: 'accepting' | 'offering' = matcher.accepting ? 'accepting' : 'offering';
 		let connect: (port: MessagePort, matched: PeerIntent, closing: Promise<void>) => PromiseLike<unknown>;
@@ -37,7 +37,7 @@ export function toCats(matching: Intent|Intent[]): Cat<unknown>[] {
 		let formOrForms = (matcher.accepting || matcher.offering)!;
 		for (let form of Array.isArray(formOrForms) ? formOrForms : [formOrForms]) {
 			if (typeof form !== 'string') {
-				throw new Error('https://purl.org/pio/a/MatcherFormNotAString');
+				throw new Error('https://purl.org/pio/e/MatcherFormNotAString@$Version$');
 			}
 			cats.push({ side, form, having: matcher.having || {}, connect });
 		}
@@ -73,7 +73,7 @@ function performSend(matcher: BasicOffer|PostingOffer<any>, port: MessagePort, m
 			}
 		};
 		if (offerPosted) {
-			return reject(new Error('https://purl.org/pio/a/OfferAlreadyPosted'));
+			return reject(new Error('https://purl.org/pio/e/OfferAlreadyPosted@$Version$'));
 		}
 		offerPosted = true;
 		if (transfer) {
@@ -115,7 +115,7 @@ function performRecv(matcher: BasicAcceptor|PostingAcceptor<unknown>, port: Mess
 
 					let postResult = (data: any, transfer?: Transferable[]) => {
 						if (!waitingForResult) {
-							return Promise.reject(new Error('https://purl.org/pio/a/ResultAlreadyPosted'));
+							return Promise.reject(new Error('https://purl.org/pio/e/ResultAlreadyPosted@$Version$'));
 						}
 						waitingForResult = false;
 						if (transfer) {

@@ -253,7 +253,7 @@ function createZImpl(this: void, request: ModalRequest): ZImpl {
 	let o = <T> (matching: ConnectingAcceptor<T>|ConnectingOffer<T>|Array<ConnectingAcceptor<T>|ConnectingOffer<T>>) => {
 		try {
 			if (state !== 'created') {
-				return Promise.reject(new Error('https://purl.org/pio/a/AlreadyOpened'));
+				return Promise.reject(new Error('https://purl.org/pio/e/AlreadyOpened@$Version$'));
 			}
 
 			state = 'open';
@@ -294,7 +294,7 @@ function createZImpl(this: void, request: ModalRequest): ZImpl {
 			}
 
 			if (!request.launcher && !request.service) {
-				throw new Error('https://purl.org/pio/a/NothingToOpen');
+				throw new Error('https://purl.org/pio/e/NothingToOpen@$Version$');
 			}
 
 			if (ModalRequest.useInlineScriptHack !== false && (ModalRequest.useInlineScriptHack || window !== top)) {
@@ -320,7 +320,7 @@ function createZImpl(this: void, request: ModalRequest): ZImpl {
 				+ `top=${window.screenY+40}`
 			);
 			if (!popup) {
-				throw new Error('https://purl.org/pio/a/PopupBlocked');
+				throw new Error('https://purl.org/pio/e/PopupBlocked@$Version$');
 			}
 			if (ieHack) {
 				popup.location.replace('about:blank');
@@ -336,7 +336,7 @@ function createZImpl(this: void, request: ModalRequest): ZImpl {
 			} else if (typeof request.launcher === 'function') {
 				request.launcher(popup, request);
 			} else {
-				throw new Error('https://purl.org/pio/a/NothingToOpen');
+				throw new Error('https://purl.org/pio/e/NothingToOpen@$Version$');
 			}
 
 			let pollClosedInterval = setInterval(() => {
@@ -356,19 +356,19 @@ function createZImpl(this: void, request: ModalRequest): ZImpl {
 				if (typeof request.overlay === 'function') {
 					closeOverlay = request.overlay(request);
 					if (typeof closeOverlay !== 'function') {
-						throw new Error('https://purl.org/pio/a/OverlayFunctionDidntReturnFunction');
+						throw new Error('https://purl.org/pio/e/OverlayFunctionDidntReturnFunction@$Version$');
 					}
 				} else {
 					let overlayNode: Element | HTMLElement | SVGElement | null | undefined;
 					if (typeof request.overlay === 'string') {
 						overlayNode = document.querySelector(request.overlay);
 						if (!overlayNode) {
-							throw new Error('https://purl.org/pio/a/OverlayNotFound')
+							throw new Error('https://purl.org/pio/e/OverlayNotFound@$Version$')
 						}
 					} else if (request.overlay instanceof Element) {
 						overlayNode = request.overlay;
 					} else {
-						throw new Error('https://purl.org/pio/a/OverlayNotAStringOrHTMLElement');
+						throw new Error('https://purl.org/pio/e/OverlayNotAStringOrHTMLElement@$Version$');
 					}
 					if (overlayNode) {
 						let onKeyDown = (ev: KeyboardEvent) => {
@@ -419,13 +419,13 @@ function createZImpl(this: void, request: ModalRequest): ZImpl {
 				}
 				if (body[0] === 'change-origin') {
 					if (typeof body[1] !== 'string') {
-						throw new Error('https://purl.org/pio/a/MissingOrigin');
+						throw new Error('https://purl.org/pio/e/MissingOrigin@$Version$');
 					}
 					serviceOrigin = body[1];
 					return;
 				}
 				if (body[0] !== 'get-request') {
-					throw new Error('https://purl.org/pio/a/UnrecognizedMessage');
+					throw new Error('https://purl.org/pio/e/UnrecognizedMessage@$Version$');
 				}
 				let connectChannel = new MessageChannel;
 				popup.postMessage({
@@ -459,23 +459,23 @@ function createZImpl(this: void, request: ModalRequest): ZImpl {
 	let exchangePort: MessagePort|undefined;
 	let onConnect = (origin: string, data: any, ports: readonly MessagePort[]) => {
 		if (exchangePort) {
-			throw new Error('https://purl.org/pio/a/AlreadyConnected');
+			throw new Error('https://purl.org/pio/e/AlreadyConnected@$Version$');
 		}
 		if (!Array.isArray(data) || data[0] !== 'connect') {
-			throw new Error('https://purl.org/pio/a/InvalidConnectMessage');
+			throw new Error('https://purl.org/pio/e/InvalidConnectMessage@$Version$');
 		}
 		if (ports.length !== 2) {
-			throw new Error('https://purl.org/pio/a/InvalidConnectMessage');
+			throw new Error('https://purl.org/pio/e/InvalidConnectMessage@$Version$');
 		}
 		let [_, side, form, having] = data;
 		if (side !== 'accepting' && side !== 'offering') {
-			throw new Error('https://purl.org/pio/a/InvalidConnectMessage');
+			throw new Error('https://purl.org/pio/e/InvalidConnectMessage@$Version$');
 		}
 		if (typeof form !== 'string') {
-			throw new Error('https://purl.org/pio/a/InvalidConnectMessage');
+			throw new Error('https://purl.org/pio/e/InvalidConnectMessage@$Version$');
 		}
 		if (typeof having !== 'object') {
-			throw new Error('https://purl.org/pio/a/InvalidConnectMessage');
+			throw new Error('https://purl.org/pio/e/InvalidConnectMessage@$Version$');
 		}
 		let peer: PeerIntent = {
 			origin,
@@ -494,7 +494,7 @@ function createZImpl(this: void, request: ModalRequest): ZImpl {
 			matchedCat = cat;
 		}
 		if (!matchedCat) {
-			throw new Error('https://purl.org/pio/a/NoMatchingConnector');
+			throw new Error('https://purl.org/pio/e/NoMatchingConnector@$Version$');
 		}
 		exchangePort = ports[0];
 		statusPort = ports[1];

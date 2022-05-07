@@ -146,7 +146,7 @@ class ModalService {
 	 */
 	static connectDirectly(side: 'offering'|'accepting', form: string, having: object, exchangePort: MessagePort, statusPort: MessagePort) {
 		if (!State.connectPort) {
-			throw new Error('https://purl.org/pio/a/NoConnectPort')
+			throw new Error('https://purl.org/pio/e/NoConnectPort@$Version$')
 		}
 		State.connectPort.postMessage(['connect', side, form, having], [exchangePort, statusPort]);
 	}
@@ -190,7 +190,7 @@ function openRequest<T>(matching: HandlingIntent<T>|BasicIntent|(HandlingIntent<
 
 function openRequest(matching: Intent|Intent[]): Promise<MatchResult<unknown>> {
 	if (State.opened) {
-		return Promise.reject(new Error('https://purl.org/pio/a/AlreadyOpened'));
+		return Promise.reject(new Error('https://purl.org/pio/e/AlreadyOpened@$Version$'));
 	}
 	State.opened = 1;
 	try {
