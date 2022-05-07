@@ -64,14 +64,11 @@ export type Matched<T> = {
 };
 
 /**
- * A matcher can be either a simple object matcher, or a dynamic matcher
+ * An Intent object can be either a basic intent, which specifies the data to send
+ * or reply with directly, or a PostingIntent which posts the data as a separate
+ * operation
  */
-export type Intent = BasicIntent | HandlingIntent<any>;
-
-/**
- * A dynamic matcher can be a callback matcher or a connecting matcher
- */
-export type HandlingIntent<T> = ConnectingIntent<T> | PostingIntent<T>;
+export type Intent = BasicIntent | PostingIntent<any>;
 
 /**
  * A simple object matcher can be used to send or receive a single object.
@@ -93,8 +90,9 @@ export interface BasicAcceptor {
 
 	/** Additional form-specific metadata */
 	having?: object|undefined;
+
 	/**
-	 * The data are reaply with, or a function returning the reply to send.
+	 * The data to reply with, or a function returning the reply to send.
 	 * 
 	 * If a function, the first parameter is the peer's Match information and
 	 * the second parameter is a promise that resolves when the exchange is closing
@@ -118,13 +116,16 @@ export interface PeerOffer {
 }
 
 /**
- * A callback matcher allows sending or receiving a single object as in
+ * A posting intent produces the offer or response data with a callback,
+ * but instead of returning the data from the callback sends it to a separate
+ * posting function. This allows sending transferable objects to the peer
+ * (including MessagePorts) and controlling the MatchResult value
  */
 export type PostingIntent<R> = PostingAcceptor<R> | PostingOffer<R>;
 
 /**
- * Acceptor with a callback function that can send a reply in response to
- * an offer.
+ * Acceptor with a callback function that separately posts the result to
+ * the offering peer
  */
 export interface PostingAcceptor<R> {
 	/** The form or forms of the object we wish to accept */
@@ -145,10 +146,8 @@ export interface PeerAcceptor {
 }
 
 /**
- * Intent with a callback function that posts the offer to a passed PeerAcceptor.
- *
- * This allows sending Transferable objects to the peer, including
- * MessagePorts.
+ * Offer with a callback the separately posts the offer data to the accepting
+ * peer
  */
 export interface PostingOffer<R> {
 	offering: string | string[];
@@ -188,65 +187,4 @@ export interface BasicOffer {
 
 	accepting?: never;
 	connecting?: never;
-}
-
-/**
- * A connecting matcher which performs the object exchange directly through
- * a given MessagePort
- */
-export type ConnectingIntent<T> = ConnectingAcceptor<T>|ConnectingOffer<T>;
-
-/**
- * Performs an accept operation directly using a MessagePort 
- */
-export interface ConnectingAcceptor<T> {
-
-	/** The form or forms of exchange that can be accepted */
-	accepting: string|string[];
-
-	/** Form-specific metadata */
-	having?: object|undefined;
-
-	/**
-	 * Perform a accept operation over the given MessagePort.
-	 * 
-	 * @param port MessagePort to perform the exchange over.
-	 * @param matching Peer Match information
-	 * @param closing Promise that resolves when the exchange is closed, in case the
-	 *                other end hangs up before the exchange is complete.
-	 * 
-	 * @return Promise that resolves to the exchange result. When it resolves
-	 *         the exchange will be ended.
-	 */
-	connecting(port: MessagePort, matching: PeerIntent, closing: Promise<void>): PromiseLike<T>;
-
-	offering?: never;
-}
-
-/**
- * Performs an offer operation directly over a MessagePort
- */
-export interface ConnectingOffer<T> {
-
-	/** The form or forms of the exchange that are offered */
-	offering: string|string[];
-
-	/** Form-specific metadata */
-	having?: object|undefined;
-
-	/**
-	 * Perform a accept operation over the given MessagePort.
-	 * 
-	 * @param port MessagePort to perform the exchange over.
-	 * @param matching Peer Match information
-	 * @param closing Promise that resolves when the exchange is closed, in case the
-	 *                other end hangs up before the exchange is complete.
-	 * 
-	 * @return Promise that resolves to the exchange result. When it resolves
-	 *         the exchange will be ended.
-	 */
-	connecting(port: MessagePort, matching: PeerIntent, closing: Promise<void>): PromiseLike<T>;
-
-	accepting?: never;
-	sending?: never;
 }

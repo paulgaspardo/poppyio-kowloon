@@ -1,6 +1,6 @@
 // Common functions and types not part of the public API
 
-import { Intent, ConnectingIntent, PeerIntent, BasicAcceptor, BasicOffer, PostingAcceptor, PeerOffer, PostingOffer, PeerAcceptor, DataArray } from "./common.js";
+import { Intent, PeerIntent, BasicAcceptor, BasicOffer, PostingAcceptor, PeerOffer, PostingOffer, PeerAcceptor, DataArray, PostingIntent } from "./common.js";
 
 export function dispatch(target: Window|Element, kind: string, detail?: any): boolean {
 	if (typeof CustomEvent === 'function') {
@@ -11,10 +11,6 @@ export function dispatch(target: Window|Element, kind: string, detail?: any): bo
 		return target.dispatchEvent(evt);
 	}
 }
-
-
-export function toCats(matching: Intent|Intent[]): Cat<unknown>[];
-export function toCats<T>(matcing: ConnectingIntent<T>|PostingAcceptor<T>|Array<PostingAcceptor<T>|ConnectingIntent<T>>): Cat<T>[];
 
 export function toCats(matching: Intent|Intent[]): Cat<unknown>[] {
 	let cats : Cat<unknown>[] = [];
@@ -27,9 +23,7 @@ export function toCats(matching: Intent|Intent[]): Cat<unknown>[] {
 		}
 		let side: 'accepting' | 'offering' = matcher.accepting ? 'accepting' : 'offering';
 		let connect: (port: MessagePort, matched: PeerIntent, closing: Promise<void>) => PromiseLike<unknown>;
-		if ('connecting' in matcher && typeof matcher.connecting === 'function') {
-			connect = matcher.connecting.bind(matcher);
-		} else if (matcher.accepting) {
+		if (matcher.accepting) {
 			connect = (port, matched, closing) => performRecv(matcher as BasicAcceptor|PostingAcceptor<unknown>, port, matched, closing);
 		} else {
 			connect = (port, matched, closing) => performSend(matcher as BasicOffer, port, matched, closing);

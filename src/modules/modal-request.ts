@@ -1,4 +1,4 @@
-import { ConnectingAcceptor, ConnectingIntent, PeerIntent, MatchResult, ConnectingOffer, BasicIntent, Intent, PostingAcceptor, PostingOffer, HandlingIntent } from "./common.js";
+import { PeerIntent, MatchResult, BasicIntent, Intent, DataArray, PostingIntent } from "./common.js";
 
 import { parseOrigin, toCats, Cat, dispatch } from "./common-impl.js";
 
@@ -163,11 +163,11 @@ class ModalRequest {
 	 * @param matching 
 	 * @returns 
 	 */
-	open(matching: BasicIntent|BasicIntent[]): Promise<MatchResult<any[]>>
-	open<T>(matching: HandlingIntent<T>|HandlingIntent<T>[]): Promise<MatchResult<T>>
-	open<T>(matching: HandlingIntent<T>|BasicIntent|(HandlingIntent<T>|BasicIntent)): Promise<MatchResult<T|any[]>>
+	open(matching: BasicIntent|BasicIntent[]): Promise<MatchResult<DataArray>>
+	open<T>(matching: PostingIntent<T>|PostingIntent<T>[]): Promise<MatchResult<T>>
+	open<T>(matching: PostingIntent<T>|BasicIntent|(PostingIntent<T>|BasicIntent)[]): Promise<MatchResult<T|DataArray>>
 
-	open(matching: HandlingIntent<any>|BasicIntent|(HandlingIntent<any>|BasicIntent)[]): Promise<MatchResult<unknown>> {
+	open(matching: PostingIntent<any>|BasicIntent|(PostingIntent<any>|BasicIntent)[]): Promise<MatchResult<unknown>> {
 		return this.z.o(matching);
 	}
 
@@ -250,7 +250,7 @@ function createZImpl(this: void, request: ModalRequest): ZImpl {
 
 	let cats: Cat<any>[];
 
-	let o = <T> (matching: ConnectingAcceptor<T>|ConnectingOffer<T>|Array<ConnectingAcceptor<T>|ConnectingOffer<T>>) => {
+	let o = <T> (matching: Intent) => {
 		try {
 			if (state !== 'created') {
 				return Promise.reject(new Error('https://purl.org/pio/e/AlreadyOpened@$Version$'));
