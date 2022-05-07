@@ -560,6 +560,6 @@ function installInlineEventHandlers(proxyWindow: any) {
 			// ignore
 		}
 	}
-	proxyWindow.addEventListener('https://purl.org/pio/a/#Close', () => proxyWindow.pioc());
-	proxyWindow.addEventListener('https://purl.org/pio/a/#ChangeLocation', (e: any) => proxyWindow.piop?.location.replace(e.detail));
+	proxyWindow.addEventListener('https://purl.org/pio/a/Close', () => proxyWindow.pioc());
+	proxyWindow.addEventListener('https://purl.org/pio/a/ChangeLocation', (e: any) => proxyWindow.piop?.location.replace(e.detail));
 }
