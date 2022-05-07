@@ -4,10 +4,10 @@ import { Intent, ConnectingIntent, PeerIntent, MatchingAcceptor, MatchingOffer, 
 
 export function dispatch(target: Window|Element, kind: string, detail?: any): boolean {
 	if (typeof CustomEvent === 'function') {
-		return target.dispatchEvent(new CustomEvent('https://js.poppy.io/a/' + kind, { cancelable: true, bubbles: true, detail }));
+		return target.dispatchEvent(new CustomEvent('https://purl.org/pio/a/' + kind, { cancelable: true, bubbles: true, detail }));
 	} else {
 		let evt = ('document' in target ? target.document : target.ownerDocument).createEvent('CustomEvent');
-		(evt as any).initCustomEvent('https://js.poppy.io/a/' + kind, true, true, detail);
+		(evt as any).initCustomEvent('https://purl.org/pio/a/' + kind, true, true, detail);
 		return target.dispatchEvent(evt);
 	}
 }
@@ -20,10 +20,10 @@ export function toCats(matching: Intent|Intent[]): Cat<unknown>[] {
 	let cats : Cat<unknown>[] = [];
 	for (let matcher of Array.isArray(matching) ? matching : [matching]) {
 		if (!matcher || typeof matcher !== 'object') {
-			throw new Error('https://js.poppy.io/a/MatcherNotAnObject');
+			throw new Error('https://purl.org/pio/a/MatcherNotAnObject');
 		}
 		if (!!matcher.accepting === !!matcher.offering) {
-			throw new Error('https://js.poppy.io/a/MatcherDoesNotHaveAcceptingXorOffering');
+			throw new Error('https://purl.org/pio/a/MatcherDoesNotHaveAcceptingXorOffering');
 		}
 		let side: 'accepting' | 'offering' = matcher.accepting ? 'accepting' : 'offering';
 		let connect: (port: MessagePort, matched: PeerIntent, closing: Promise<void>) => PromiseLike<unknown>;
@@ -37,7 +37,7 @@ export function toCats(matching: Intent|Intent[]): Cat<unknown>[] {
 		let formOrForms = (matcher.accepting || matcher.offering)!;
 		for (let form of Array.isArray(formOrForms) ? formOrForms : [formOrForms]) {
 			if (typeof form !== 'string') {
-				throw new Error('https://js.poppy.io/a/MatcherFormNotAString');
+				throw new Error('https://purl.org/pio/a/MatcherFormNotAString');
 			}
 			cats.push({ side, form, having: matcher.having || {}, connect });
 		}
@@ -76,7 +76,7 @@ function performSend(matcher: MatchingOffer|CallbackOffer<any>, port: MessagePor
 				}
 			};
 			if (offerPosted) {
-				return reject(new Error('https://js.poppy.io/a/OfferAlreadyPosted'));
+				return reject(new Error('https://purl.org/pio/a/OfferAlreadyPosted'));
 			}
 			offerPosted = true;
 			if (transfer) {
@@ -115,7 +115,7 @@ function performRecv(matcher: MatchingAcceptor|CallbackAcceptor<unknown>, port: 
 
 					let postResult = (data: any, transfer?: Transferable[]) => {
 						if (!waitingForResult) {
-							return Promise.reject(new Error('https://js.poppy.io/a/ResultAlreadyPosted'));
+							return Promise.reject(new Error('https://purl.org/pio/a/ResultAlreadyPosted'));
 						}
 						waitingForResult = false;
 						if (transfer) {

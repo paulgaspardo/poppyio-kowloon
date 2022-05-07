@@ -46,7 +46,7 @@ class Injected {
 			}
 			return (popup, request) => injectLauncher(popup, translations[0], request);
 		}
-		return popup => popup.document.body.innerHTML = `<a href="https://js.poppy.io/a/NothingToLaunch?tag=${encodeURIComponent(tag)}">NoTranslations - ${encodeURIComponent(tag)}</a>`;
+		return popup => popup.document.body.innerHTML = `<a href="https://purl.org/pio/a/NothingToLaunch?tag=${encodeURIComponent(tag)}">NoTranslations - ${encodeURIComponent(tag)}</a>`;
 	}
 
 	/**
@@ -189,7 +189,7 @@ function injectLauncher(popup: Window, translation: {[key:string]:string}, reque
 			}
 			for (let link of response.links) {
 				if (!link) continue;
-				if (link.rel !== 'https://js.poppy.io/a/ModalService') continue;
+				if (link.rel !== 'https://purl.org/pio/a/ModalService') continue;
 				if (typeof link.href !== 'string') continue;
 				return link.href as string;
 			}

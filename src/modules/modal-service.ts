@@ -18,7 +18,7 @@ class ModalService {
 	 */
 	static close() {
 		top?.opener?.postMessage({
-			'https://js.poppy.io/a/ServiceMessage': ['close']
+			'https://purl.org/pio/a/ServiceMessage': ['close']
 		}, '*');
 		window.close();
 	}
@@ -39,7 +39,7 @@ class ModalService {
 			return;
 		}
 		(top.opener || top).postMessage({
-			'https://js.poppy.io/a/ServiceMessage': ['change-origin', newOrigin]
+			'https://purl.org/pio/a/ServiceMessage': ['change-origin', newOrigin]
 		}, '*');
 	}
 
@@ -68,7 +68,7 @@ class ModalService {
 			State.listening = true;
 			State.waiting = [];
 			top.opener.postMessage({
-				'https://js.poppy.io/a/ServiceMessage': ['get-request']
+				'https://purl.org/pio/a/ServiceMessage': ['get-request']
 			}, '*');
 			top.addEventListener('message', m => {
 				if (top?.opener) {
@@ -84,7 +84,7 @@ class ModalService {
 				if ((m.source as Window).top !== (top?.opener?.top || top)) {
 					return;
 				}
-				let body = m.data?.['https://js.poppy.io/a/ClientMessage'];
+				let body = m.data?.['https://purl.org/pio/a/ClientMessage'];
 				if (!Array.isArray(body)) {
 					return;
 				}
@@ -146,7 +146,7 @@ class ModalService {
 	 */
 	static connectDirectly(side: 'offering'|'accepting', form: string, having: object, exchangePort: MessagePort, statusPort: MessagePort) {
 		if (!State.connectPort) {
-			throw new Error('https://js.poppy.io/a/NoConnectPort')
+			throw new Error('https://purl.org/pio/a/NoConnectPort')
 		}
 		State.connectPort.postMessage(['connect', side, form, having], [exchangePort, statusPort]);
 	}
@@ -190,7 +190,7 @@ function openRequest<T>(matching: HandlingIntent<T>|MatchingIntent|(HandlingInte
 
 function openRequest(matching: Intent|Intent[]): Promise<MatchResult<unknown>> {
 	if (State.opened) {
-		return Promise.reject(new Error('https://js.poppy.io/a/AlreadyOpened'));
+		return Promise.reject(new Error('https://purl.org/pio/a/AlreadyOpened'));
 	}
 	State.opened = 1;
 	try {

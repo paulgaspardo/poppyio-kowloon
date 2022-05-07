@@ -72,12 +72,12 @@ class ModalRequest {
 	 * part of the iframe's content window, the true parent of the popup. So as
 	 * a workaround, we can inject JavaScript in a script tag directly into the
 	 * proxy iframe making it unambiguously the popup's opener. This is not ideal
-	 * and may not work depending on the server's Content Security Policy, so it's
-	 * oy default only done in cases where we are not the top frame. It may be
-	 * disabled entirely by setting this value to "never", or enabled always by
-	 * setting it to "always".
+	 * and may not work depending on the server's Content Security Policy, so the
+	 * default behavior if not specified is to only attempt the hack if we detect
+	 * we are in a frame - but it may be disabled entirely by setting this to
+	 * false.
 	 */
-	static useInlineScriptHack?: 'always' | 'never' | undefined;
+	static useInlineScriptHack?: true | false | null | undefined;
 
 	/**
 	 * The URL of the service page to open in the popup. Optional, but a
@@ -253,7 +253,7 @@ function createZImpl(this: void, request: ModalRequest): ZImpl {
 	let o = <T> (matching: ConnectingAcceptor<T>|ConnectingOffer<T>|Array<ConnectingAcceptor<T>|ConnectingOffer<T>>) => {
 		try {
 			if (state !== 'created') {
-				return Promise.reject(new Error('https://js.poppy.io/a/AlreadyOpened'));
+				return Promise.reject(new Error('https://purl.org/pio/a/AlreadyOpened'));
 			}
 
 			state = 'open';
@@ -266,7 +266,7 @@ function createZImpl(this: void, request: ModalRequest): ZImpl {
 
 			proxy = ModalRequest.nextProxy;
 			if (!proxy || !proxy.contentDocument) {
-				console.warn('https://js.poppy.io/a/NoNextProxy');
+				console.warn('https://purl.org/pio/a/NoNextProxy');
 				proxy = createProxy();
 			}
 			ModalRequest.nextProxy = undefined;
@@ -279,7 +279,7 @@ function createZImpl(this: void, request: ModalRequest): ZImpl {
 			unloadEvent = 'onpagehide' in proxyWindow ? 'pagehide' : 'unload';
 			addEventListener(unloadEvent, onUnload);
 
-			proxyWindow.addEventListener('https://js.poppy.io/a/Connect', (ev: any) => {
+			proxyWindow.addEventListener('https://purl.org/pio/a/Connect', (ev: any) => {
 				try {
 					let { origin, data, ports } = ev.detail;
 					onConnect(origin, data, ports);
@@ -287,22 +287,22 @@ function createZImpl(this: void, request: ModalRequest): ZImpl {
 					x(e);
 				}
 			});
-			proxyWindow.addEventListener('https://js.poppy.io/a/Close', () => x());
+			proxyWindow.addEventListener('https://purl.org/pio/a/Close', () => x());
 
 			if (!dispatch(proxy, 'Open', { service: request.service, matching } )) {
 				return openPromise;
 			}
 
 			if (!request.launcher && !request.service) {
-				throw new Error('https://js.poppy.io/a/NothingToOpen');
+				throw new Error('https://purl.org/pio/a/NothingToOpen');
 			}
 
-			if (ModalRequest.useInlineScriptHack !== 'never' && (ModalRequest.useInlineScriptHack === 'always' || window !== top)) {
+			if (ModalRequest.useInlineScriptHack !== false && (ModalRequest.useInlineScriptHack || window !== top)) {
 				let hackScript = proxyDocument.createElement('script');
 				hackScript.textContent = 'pioi=1;(' + installInlineEventHandlers + ')(window)';
 				proxyDocument.body.appendChild(hackScript);
 				if (!(proxyWindow as any).pioi) {
-					console.warn('https://js.poppy.io/a/InjectHackFailed');
+					console.warn('https://purl.org/pio/a/InjectHackFailed');
 					installInlineEventHandlers(proxyWindow as Window & { piop: Window|null|undefined});
 				}
 			} else {
@@ -320,13 +320,13 @@ function createZImpl(this: void, request: ModalRequest): ZImpl {
 				+ `top=${window.screenY+40}`
 			);
 			if (!popup) {
-				throw new Error('https://js.poppy.io/a/PopupBlocked');
+				throw new Error('https://purl.org/pio/a/PopupBlocked');
 			}
 			if (ieHack) {
 				popup.location.replace('about:blank');
 			}
 			
-			proxyWindow.addEventListener('https://js.poppy.io/a/ChangeLocation', (e: any) => {
+			proxyWindow.addEventListener('https://purl.org/pio/a/ChangeLocation', (e: any) => {
 				serviceOrigin = parseOrigin(e.detail, serviceOrigin);
 			});
 
@@ -336,7 +336,7 @@ function createZImpl(this: void, request: ModalRequest): ZImpl {
 			} else if (typeof request.launcher === 'function') {
 				request.launcher(popup, request);
 			} else {
-				throw new Error('https://js.poppy.io/a/NothingToOpen');
+				throw new Error('https://purl.org/pio/a/NothingToOpen');
 			}
 
 			let pollClosedInterval = setInterval(() => {
@@ -356,19 +356,19 @@ function createZImpl(this: void, request: ModalRequest): ZImpl {
 				if (typeof request.overlay === 'function') {
 					closeOverlay = request.overlay(request);
 					if (typeof closeOverlay !== 'function') {
-						throw new Error('https://js.poppy.io/a/OverlayFunctionDidntReturnFunction');
+						throw new Error('https://purl.org/pio/a/OverlayFunctionDidntReturnFunction');
 					}
 				} else {
 					let overlayNode: Element | HTMLElement | SVGElement | null | undefined;
 					if (typeof request.overlay === 'string') {
 						overlayNode = document.querySelector(request.overlay);
 						if (!overlayNode) {
-							throw new Error('https://js.poppy.io/a/OverlayNotFound')
+							throw new Error('https://purl.org/pio/a/OverlayNotFound')
 						}
 					} else if (request.overlay instanceof Element) {
 						overlayNode = request.overlay;
 					} else {
-						throw new Error('https://js.poppy.io/a/OverlayNotAStringOrHTMLElement');
+						throw new Error('https://purl.org/pio/a/OverlayNotAStringOrHTMLElement');
 					}
 					if (overlayNode) {
 						let onKeyDown = (ev: KeyboardEvent) => {
@@ -403,7 +403,7 @@ function createZImpl(this: void, request: ModalRequest): ZImpl {
 				}
 			}
 			let onCrossDocumentMessage = (m: MessageEvent) => {
-				let body = m.data?.['https://js.poppy.io/a/ServiceMessage'];
+				let body = m.data?.['https://purl.org/pio/a/ServiceMessage'];
 				if (!Array.isArray(body)) {
 					return;
 				}
@@ -419,17 +419,17 @@ function createZImpl(this: void, request: ModalRequest): ZImpl {
 				}
 				if (body[0] === 'change-origin') {
 					if (typeof body[1] !== 'string') {
-						throw new Error('https://js.poppy.io/a/MissingOrigin');
+						throw new Error('https://purl.org/pio/a/MissingOrigin');
 					}
 					serviceOrigin = body[1];
 					return;
 				}
 				if (body[0] !== 'get-request') {
-					throw new Error('https://js.poppy.io/a/UnrecognizedMessage');
+					throw new Error('https://purl.org/pio/a/UnrecognizedMessage');
 				}
 				let connectChannel = new MessageChannel;
 				popup.postMessage({
-					'https://js.poppy.io/a/ClientMessage': [
+					'https://purl.org/pio/a/ClientMessage': [
 						'request',
 						cats.map(({ side, having, form }) => ({ side, having, form }))
 					]
@@ -459,23 +459,23 @@ function createZImpl(this: void, request: ModalRequest): ZImpl {
 	let exchangePort: MessagePort|undefined;
 	let onConnect = (origin: string, data: any, ports: readonly MessagePort[]) => {
 		if (exchangePort) {
-			throw new Error('https://js.poppy.io/a/AlreadyConnected');
+			throw new Error('https://purl.org/pio/a/AlreadyConnected');
 		}
 		if (!Array.isArray(data) || data[0] !== 'connect') {
-			throw new Error('https://js.poppy.io/a/InvalidConnectMessage');
+			throw new Error('https://purl.org/pio/a/InvalidConnectMessage');
 		}
 		if (ports.length !== 2) {
-			throw new Error('https://js.poppy.io/a/InvalidConnectMessage');
+			throw new Error('https://purl.org/pio/a/InvalidConnectMessage');
 		}
 		let [_, side, form, having] = data;
 		if (side !== 'accepting' && side !== 'offering') {
-			throw new Error('https://js.poppy.io/a/InvalidConnectMessage');
+			throw new Error('https://purl.org/pio/a/InvalidConnectMessage');
 		}
 		if (typeof form !== 'string') {
-			throw new Error('https://js.poppy.io/a/InvalidConnectMessage');
+			throw new Error('https://purl.org/pio/a/InvalidConnectMessage');
 		}
 		if (typeof having !== 'object') {
-			throw new Error('https://js.poppy.io/a/InvalidConnectMessage');
+			throw new Error('https://purl.org/pio/a/InvalidConnectMessage');
 		}
 		let peer: PeerIntent = {
 			origin,
@@ -494,7 +494,7 @@ function createZImpl(this: void, request: ModalRequest): ZImpl {
 			matchedCat = cat;
 		}
 		if (!matchedCat) {
-			throw new Error('https://js.poppy.io/a/NoMatchingConnector');
+			throw new Error('https://purl.org/pio/a/NoMatchingConnector');
 		}
 		exchangePort = ports[0];
 		statusPort = ports[1];
@@ -560,6 +560,6 @@ function installInlineEventHandlers(proxyWindow: any) {
 			// ignore
 		}
 	}
-	proxyWindow.addEventListener('https://js.poppy.io/a/Close', () => proxyWindow.pioc());
-	proxyWindow.addEventListener('https://js.poppy.io/a/ChangeLocation', (e: any) => proxyWindow.piop?.location.replace(e.detail));
+	proxyWindow.addEventListener('https://purl.org/pio/a/#Close', () => proxyWindow.pioc());
+	proxyWindow.addEventListener('https://purl.org/pio/a/#ChangeLocation', (e: any) => proxyWindow.piop?.location.replace(e.detail));
 }
