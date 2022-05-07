@@ -66,7 +66,12 @@ require("poppyio/cjs/inject-en");
 AMD versions are in the `/amd/` path, for instance:
 
 ```javascript
-require(["poppyio/amd/modal-request", "poppyio/amd/inject-en"], function (mr) {
+requirejs.configure({
+  paths: {
+    poppyio: "./node_modules/poppyio/amd"
+  }
+})
+require(["poppyio/modal-request", "poppyio/inject-en"], function (mr) {
   var ModalRequest = mr.default;
 });
 ```
