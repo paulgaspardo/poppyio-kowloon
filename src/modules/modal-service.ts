@@ -61,13 +61,13 @@ class ModalService {
 		if (State.request) {
 			return Promise.resolve(State.request);
 		}
-		if (!top || !top.opener) {
+		if (!top) {
 			return Promise.resolve(undefined);
 		}
 		if (!State.listening) {
 			State.listening = true;
 			State.waiting = [];
-			top.opener.postMessage({
+			(top.opener || top).postMessage({
 				'https://purl.org/pio/a/ServiceMessage': ['get-request']
 			}, '*');
 			top.addEventListener('message', m => {
