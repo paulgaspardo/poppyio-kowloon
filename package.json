@@ -9,7 +9,7 @@
 		"build": "jake",
 		"clean": "jake clean",
 		"rebuild": "jake rebuild",
-		"watch": "nodemon --exec jake -e js,ts,html,json,toml --ignore target",
+		"watch": "nodemon --exec 'jake && http-server' -e js,ts,html,json,toml --ignore target",
 		"typedoc": "typedoc --out target/typedoc --name poppyio --excludePrivate src/modules/poppyio.ts"
 	},
 	"author": "Paul Gaspardo <paulgaspardo@outlook.com>",
