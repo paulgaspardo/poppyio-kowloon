@@ -64,9 +64,8 @@ class ModalService {
 		if (!top) {
 			return Promise.resolve(undefined);
 		}
-		if (!State.listening) {
-			State.listening = true;
-			State.waiting = [];
+		if (!State.waiting) {
+			State.waiting = {};
 			(top.opener || top).postMessage({
 				'https://purl.org/pio/a/ServiceMessage': ['get-request']
 			}, '*');
@@ -122,16 +121,30 @@ class ModalService {
 					matching,
 					open: openRequest
 				};
-				for (let waiting of State.waiting || []) {
-					waiting(req);
+				for (let key of Object.keys(State.waiting!)) {
+					State.waiting![key](req);
 				}
-				delete State.waiting;
 			});
 		}
-		return Promise.race([
-			new Promise<ModalServiceRequest>(resolve => (State.waiting = State.waiting || []).push(resolve)),
-			new Promise<undefined>(resolve => setTimeout(resolve, typeof timeout === 'number' ? timeout : 1000))
-		]);
+		return new Promise<ModalServiceRequest|undefined>(resolve => {
+			let waitingKey = State.lastWaitingKey = (State.lastWaitingKey || 0) + 1;
+			let timeoutPending = true;
+			let timeoutId = setTimeout(
+				() => {
+					timeoutPending = false;
+					finish(undefined)
+				},
+				typeof timeout === 'number' ? timeout : 1000
+			);
+			let finish = (req: ModalServiceRequest|undefined) => {
+				if (timeoutPending) {
+					clearTimeout(timeoutId);
+				}
+				delete State.waiting![waitingKey];
+				resolve(req);
+			}
+			State.waiting![waitingKey] = finish;
+		});
 	}
 	
 	/**
@@ -177,8 +190,8 @@ class ModalService {
 
 
 class State {
-	static listening: boolean|undefined;
-	static waiting: Array<(request: ModalServiceRequest) => void> | undefined;
+	static lastWaitingKey: number;
+	static waiting: {[key:string]:(request: ModalServiceRequest) => void} | undefined;
 	static request: ModalServiceRequest|undefined;
 	static connectPort: MessagePort;
 	static opened: any;
