@@ -1,7 +1,7 @@
 {
 	"private": true,
 	"name": "kowloon",
-	"version": "0.0.9",
+	"version": "0.1.0",
 	"description": "poppyio package",
 	"main": "poppyio.js",
 	"scripts": {
@@ -26,7 +26,7 @@
 		"glob": "^8.0.1",
 		"html-minifier": "^4.0.0",
 		"http-server": "^14.1.0",
-		"jake": "^8.0.19",
+		"jake": "^10.8.5",
 		"nodemon": "^2.0.15",
 		"promiscuous": "^0.7.2",
 		"random-animal-name-generator": "^0.1.1",
